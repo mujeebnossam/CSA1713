@@ -1,0 +1,57 @@
+
+from collections import deque
+
+def solve():
+    start = (3, 3, 0)
+    goal = (0, 0, 1)
+
+    moves = [(1, 0), (2, 0), (0, 1),
+             (0, 2), (1, 1)]
+
+    queue = deque([(start, [])])
+    visited = set()
+
+    while queue:
+        state, path = queue.popleft()
+
+        if state in visited:
+            continue
+
+        visited.add(state)
+        path = path + [state]
+
+        if state == goal:
+            print("Solution:")
+            for step in path:
+                print(step)
+            return
+
+        m, c, boat = state
+
+        for dm, dc in moves:
+            if boat == 0:
+                nm = m - dm
+                nc = c - dc
+                nb = 1
+            else:
+                nm = m + dm
+                nc = c + dc
+                nb = 0
+
+            if 0 <= nm <= 3 and 0 <= nc <= 3:
+                lm = nm
+                lc = nc
+                rm = 3 - nm
+                rc = 3 - nc
+
+                if (lm == 0 or lm >= lc) and \
+                   (rm == 0 or rm >= rc):
+
+                    new_state = (nm, nc, nb)
+
+                    if new_state not in visited:
+                        queue.append((new_state, path))
+
+    print("No solution")
+
+solve()
