@@ -1,0 +1,72 @@
+
+import heapq
+
+goal = (1, 2, 3,
+        4, 5, 6,
+        7, 8, 0)
+
+def heuristic(state):
+    distance = 0
+
+    for i in range(9):
+        if state[i] != 0:
+            x = state[i] - 1
+            distance += abs(i // 3 - x // 3)
+            distance += abs(i % 3 - x % 3)
+
+    return distance
+
+def solve(start):
+    pq = []
+    heapq.heappush(pq, (0, start, []))
+
+    visited = set()
+
+    while pq:
+        cost, state, path = heapq.heappop(pq)
+
+        if state in visited:
+            continue
+
+        visited.add(state)
+        path = path + [state]
+
+        if state == goal:
+            for step in path:
+                print(step[0:3])
+                print(step[3:6])
+                print(step[6:9])
+                print()
+            return
+
+        zero = state.index(0)
+        moves = [-3, 3, -1, 1]
+
+        for move in moves:
+            new = zero + move
+
+            if 0 <= new < 9:
+                if move == -1 and zero % 3 == 0:
+                    continue
+                if move == 1 and zero % 3 == 2:
+                    continue
+
+                temp = list(state)
+                temp[zero], temp[new] = temp[new], temp[zero]
+                new_state = tuple(temp)
+
+                if new_state not in visited:
+                    g = len(path)
+                    h = heuristic(new_state)
+
+                    heapq.heappush(
+                        pq, (g + h, new_state, path)
+                    )
+
+    print("No solution found")
+
+start = (1, 2, 3,
+         4, 0, 6,
+         7, 5, 8)
+
+solve(start)
