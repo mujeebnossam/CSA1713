@@ -1,0 +1,32 @@
+
+from itertools import permutations
+
+dist = [
+    [0, 10, 15, 20],
+    [10, 0, 35, 25],
+    [15, 35, 0, 30],
+    [20, 25, 30, 0]
+]
+
+n = len(dist)
+cities = list(range(1, n))
+
+min_cost = float('inf')
+best_path = []
+
+for path in permutations(cities):
+    route = [0] + list(path) + [0]
+
+    cost = 0
+
+    for i in range(len(route) - 1):
+        cost += dist[route[i]][route[i+1]]
+
+    if cost < min_cost:
+        min_cost = cost
+        best_path = route
+
+print("Shortest Route:")
+print(best_path)
+
+print("Minimum Cost:", min_cost)
