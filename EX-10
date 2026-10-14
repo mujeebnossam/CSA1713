@@ -1,0 +1,54 @@
+
+# A* Search Algorithm
+
+graph = {
+    'A': {'B': 1, 'C': 3},
+    'B': {'D': 3, 'E': 1},
+    'C': {'F': 5},
+    'D': {},
+    'E': {'G': 2},
+    'F': {'G': 2},
+    'G': {}
+}
+
+# Heuristic values
+h = {
+    'A': 6,
+    'B': 4,
+    'C': 4,
+    'D': 3,
+    'E': 2,
+    'F': 1,
+    'G': 0
+}
+
+def astar(start, goal):
+    open_list = [(h[start], 0, start, [start])]
+    visited = set()
+
+    while open_list:
+        open_list.sort()
+        f, g, node, path = open_list.pop(0)
+
+        if node == goal:
+            print("Shortest Path:", " -> ".join(path))
+            print("Total Cost:", g)
+            return
+
+        if node in visited:
+            continue
+
+        visited.add(node)
+
+        for neighbour, cost in graph[node].items():
+            if neighbour not in visited:
+                new_g = g + cost
+                new_f = new_g + h[neighbour]
+                open_list.append(
+                    (new_f, new_g, neighbour, path + [neighbour])
+                )
+
+    print("No path found")
+
+# Execute A* algorithm
+astar('A', 'G')
