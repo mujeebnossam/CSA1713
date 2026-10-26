@@ -1,0 +1,60 @@
+import math
+
+# Alpha-Beta Pruning Implementation
+def alpha_beta(depth, node_index, is_maximizing, values, alpha, beta, target_depth):
+    # Base case: Leaf node reached
+    if depth == target_depth:
+        return values[node_index]
+
+    if is_maximizing:
+        max_eval = -math.inf
+        # Binary game tree: left child (2 * node_index) and right child (2 * node_index + 1)
+        for i in range(2):
+            child_index = node_index * 2 + i
+            eval_val = alpha_beta(depth + 1, child_index, False, values, alpha, beta, target_depth)
+            max_eval = max(max_eval, eval_val)
+            alpha = max(alpha, eval_val)
+            
+            # Prune condition: Beta cut-off
+            if beta <= alpha:
+                print(f"[Pruning] Maximizer pruned remaining branches at depth {depth}, node {node_index}")
+                break
+        return max_eval
+    else:
+        min_eval = math.inf
+        for i in range(2):
+            child_index = node_index * 2 + i
+            eval_val = alpha_beta(depth + 1, child_index, True, values, alpha, beta, target_depth)
+            min_eval = min(min_eval, eval_val)
+            beta = min(beta, eval_val)
+            
+            # Prune condition: Alpha cut-off
+            if beta <= alpha:
+                print(f"[Pruning] Minimizer pruned remaining branches at depth {depth}, node {node_index}")
+                break
+        return min_eval
+
+
+if __name__ == "__main__":
+    # Terminal leaf utilities (evaluated left to right)
+    # Tree with 8 leaves has height log2(8) = 3
+    leaf_values = [3, 5, 6, 9, 1, 2, 0, -1]
+    tree_depth = int(math.log2(len(leaf_values)))
+
+    print(f"Leaf Node Values: {leaf_values}")
+    print(f"Tree Depth: {tree_depth}\n")
+    print("--- Search Execution ---")
+
+    # Initial values: alpha = -infinity, beta = +infinity
+    optimal_score = alpha_beta(
+        depth=0,
+        node_index=0,
+        is_maximizing=True,
+        values=leaf_values,
+        alpha=-math.inf,
+        beta=math.inf,
+        target_depth=tree_depth
+    )
+
+    print("\n--- Result ---")
+    print(f"The optimal value determined by Alpha-Beta Pruning is: {optimal_score}")
