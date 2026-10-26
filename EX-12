@@ -1,0 +1,49 @@
+def print_board(board):
+    print("\n")
+    for i in range(3):
+        print(f" {board[i*3]} | {board[i*3+1]} | {board[i*3+2]} ")
+        if i < 2:
+            print("---+---+---")
+    print("\n")
+
+def check_winner(board, player):
+    win_conditions = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],  # Rows
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],  # Columns
+        [0, 4, 8], [2, 4, 6]             # Diagonals
+    ]
+    return any(all(board[cell] == player for cell in condition) for condition in win_conditions)
+
+def is_draw(board):
+    return all(cell in ['X', 'O'] for cell in board)
+
+def play_game():
+    board = [str(i + 1) for i in range(9)]
+    current_player = 'X'
+
+    while True:
+        print_board(board)
+        try:
+            choice = int(input(f"Player {current_player}, choose a spot (1-9): ")) - 1
+            if choice < 0 or choice > 8 or board[choice] in ['X', 'O']:
+                print("Invalid move. Try again.")
+                continue
+        except ValueError:
+            print("Please enter a valid number (1-9).")
+            continue
+
+        board[choice] = current_player
+
+        if check_winner(board, current_player):
+            print_board(board)
+            print(f"Congratulations! Player {current_player} wins!")
+            break
+        elif is_draw(board):
+            print_board(board)
+            print("It's a draw!")
+            break
+
+        current_player = 'O' if current_player == 'X' else 'X'
+
+if __name__ == "__main__":
+    play_game()
