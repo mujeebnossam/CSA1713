@@ -1,34 +1,131 @@
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier, export_text
-from sklearn.metrics import accuracy_score, classification_report
+import math
 
-def run_decision_tree():
-    # 1. Load dataset
-    iris = load_iris()
-    X, y = iris.data, iris.target
+# Sample Training Dataset: Play Tennis / Weather Data
+# Features: [Outlook (Sunny/Overcast/Rain), Temp (Hot/Mild/Cool), Humidity (High/Normal), Wind (Weak/Strong)]
+# Target: Play (Yes / No)
+dataset = [
+    ['Sunny', 'Hot', 'High', 'Weak', 'No'],
+    ['Sunny', 'Hot', 'High', 'Strong', 'No'],
+    ['Overcast', 'Hot', 'High', 'Weak', 'Yes'],
+    ['Rain', 'Mild', 'High', 'Weak', 'Yes'],
+    ['Rain', 'Cool', 'Normal', 'Weak', 'Yes'],
+    ['Rain', 'Cool', 'Normal', 'Strong', 'No'],
+    ['Overcast', 'Cool', 'Normal', 'Strong', 'Yes'],
+    ['Sunny', 'Mild', 'High', 'Weak', 'No'],
+    ['Sunny', 'Cool', 'Normal', 'Weak', 'Yes'],
+    ['Rain', 'Mild', 'Normal', 'Weak', 'Yes'],
+    ['Sunny', 'Mild', 'Normal', 'Strong', 'Yes'],
+    ['Overcast', 'Mild', 'High', 'Strong', 'Yes'],
+    ['Overcast', 'Hot', 'Normal', 'Weak', 'Yes'],
+    ['Rain', 'Mild', 'High', 'Strong', 'No']
+]
 
-    # 2. Split dataset into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
+feature_names = ['Outlook', 'Temperature', 'Humidity', 'Wind']
 
-    # 3. Train Decision Tree Classifier (using Entropy / Information Gain)
-    clf = DecisionTreeClassifier(criterion='entropy', max_depth=3, random_state=42)
-    clf.fit(X_train, y_train)
+# Calculate Entropy of a dataset
+def calculate_entropy(data):
+    labels = [row[-1] for row in data]
+    total_count = len(labels)
+    counts = {}
+    for label in labels:
+        counts[label] = counts.get(label, 0) + 1
 
-    # 4. Predict on test data
-    y_pred = clf.predict(X_test)
+    entropy = 0.0
+    for count in counts.values():
+        p = count / total_count
+        entropy -= p * math.log2(p)
+    return entropy
 
-    # 5. Evaluate performance
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f"Model Accuracy: {accuracy * 100:.2f}%\n")
-    print("Classification Report:")
-    print(classification_report(y_test, y_pred, target_names=iris.target_names))
+# Split dataset based on a feature index and value
+def split_data(data, feature_index, value):
+    return [row for row in data if row[feature_index] == value]
 
-    # 6. Display Decision Rules
-    print("Decision Tree Rules:")
-    print(export_text(clf, feature_names=list(iris.feature_names)))
+# Find the best feature to split on (Information Gain)
+def find_best_split(data, available_features):
+    base_entropy = calculate_entropy(data)
+    best_gain = -1
+    best_feature_idx = -1
 
+    for feature_idx in available_features:
+        values = set(row[feature_idx] for row in data)
+        feature_entropy = 0.0
+
+        for val in values:
+            subset = split_data(data, feature_idx, val)
+            weight = len(subset) / len(data)
+            feature_entropy += weight * calculate_entropy(subset)
+
+        info_gain = base_entropy - feature_entropy
+
+        if info_gain > best_gain:
+            best_gain = info_gain
+            best_feature_idx = feature_idx
+
+    return best_feature_idx
+
+# Build the decision tree recursively
+def build_tree(data, available_features):
+    labels = [row[-1] for row in data]
+
+    # Stop condition 1: All instances have the same label
+    if len(set(labels)) == 1:
+        return labels[0]
+
+    # Stop condition 2: No more features left to split on
+    if not available_features:
+        return max(set(labels), key=labels.count)
+
+    best_feature_idx = find_best_split(data, available_features)
+    feature_name = feature_names[best_feature_idx]
+    tree = {feature_name: {}}
+
+    remaining_features = [f for f in available_features if f != best_feature_idx]
+    values = set(row[best_feature_idx] for row in data)
+
+    for val in values:
+        subset = split_data(data, best_feature_idx, val)
+        tree[feature_name][val] = build_tree(subset, remaining_features)
+
+    return tree
+
+# Predict a single sample
+def predict(tree, sample):
+    if not isinstance(tree, dict):
+        return tree
+    feature_name = next(iter(tree))
+    feature_idx = feature_names.index(feature_name)
+    val = sample[feature_idx]
+
+    sub_tree = tree[feature_name].get(val)
+    if sub_tree is None:
+        return "Unknown"
+    return predict(sub_tree, sample)
+
+# Pretty print the tree
+def print_tree(tree, indent=""):
+    if not isinstance(tree, dict):
+        print(f" -> Result: {tree}")
+        return
+    for feature, branches in tree.items():
+        for val, subtree in branches.items():
+            print(f"{indent}If {feature} == '{val}'", end="")
+            print_tree(subtree, indent + "  ")
+
+# --- Run the Model ---
 if __name__ == "__main__":
-    run_decision_tree()
+    print("--- Training Decision Tree (ID3 Algorithm) ---")
+    tree = build_tree(dataset, list(range(len(feature_names))))
+    
+    print("\nLearned Decision Tree Rules:")
+    print_tree(tree)
+
+    print("\n--- Testing Predictions ---")
+    test_cases = [
+        ['Sunny', 'Cool', 'High', 'Strong'],     # Should predict No
+        ['Overcast', 'Hot', 'Normal', 'Weak'],   # Should predict Yes
+        ['Rain', 'Mild', 'Normal', 'Weak']       # Should predict Yes
+    ]
+
+    for sample in test_cases:
+        prediction = predict(tree, sample)
+        print(f"Features: {sample} => Prediction: {prediction}")
