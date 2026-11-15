@@ -1,0 +1,5 @@
+dob(alice, date(1995, 5, 12)).
+dob(bob, date(2001, 8, 23)).
+dob(charlie, date(1998, 11, 2)).
+
+get_dob(Name, DOB) :- dob(Name, DOB).
