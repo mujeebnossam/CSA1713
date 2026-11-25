@@ -1,0 +1,47 @@
+
+N = 4
+
+def is_safe(board, row, col):
+    for i in range(row):
+        if board[i] == col:
+            return False
+
+        if abs(board[i] - col) == abs(i - row):
+            return False
+
+    return True
+
+
+def solve(board, row):
+    if row == N:
+        print_solution(board)
+        return
+
+    for col in range(N):
+        if is_safe(board, row, col):
+            board[row] = col
+            solve(board, row + 1)
+            board[row] = -1
+
+
+def print_solution(board):
+    global count
+    count += 1
+
+    print("Solution", count)
+    for row in range(N):
+        for col in range(N):
+            if board[row] == col:
+                print("Q", end=" ")
+            else:
+                print(".", end=" ")
+        print()
+    print()
+
+
+board = [-1] * N
+count = 0
+
+solve(board, 0)
+
+print("Total Solutions:", count)
