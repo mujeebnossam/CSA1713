@@ -1,0 +1,41 @@
+
+def DLS(graph, node, goal, depth, path):
+    if node == goal:
+        print("Path:", path + [node])
+        return True
+
+    if depth <= 0:
+        return False
+
+    for child in graph[node]:
+        if DLS(graph, child, goal, depth - 1, path + [node]):
+            return True
+
+    return False
+
+
+def IDDFS(graph, start, goal, max_depth):
+    for depth in range(max_depth + 1):
+        print("Searching at depth:", depth)
+
+        if DLS(graph, start, goal, depth, []):
+            return True
+
+    print("Goal not found")
+    return False
+
+
+graph = {
+    'A': ['B', 'C'],
+    'B': ['D', 'E'],
+    'C': ['F', 'G'],
+    'D': [],
+    'E': [],
+    'F': [],
+    'G': []
+}
+
+start = 'A'
+goal = 'G'
+
+IDDFS(graph, start, goal, 3)
